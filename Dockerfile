@@ -2,7 +2,7 @@ FROM alpine:3.16
 
 RUN apk update && apk upgrade
 
-RUN apk add git clang rustup build-base pkgconf jq
+RUN apk add git clang compiler-rt rustup build-base pkgconf jq nodejs
 
 RUN rustup-init -y
 RUN echo "source /root/.cargo/env" >> /root/.profile
@@ -14,3 +14,5 @@ RUN cd /tmp/tree-sitter && /root/.cargo/bin/cargo install --path cli/
 COPY entrypoint.sh /entrypoint.sh
 
 ENTRYPOINT ["/entrypoint.sh"]
+
+WORKDIR /tmp/

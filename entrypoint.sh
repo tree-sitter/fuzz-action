@@ -1,6 +1,12 @@
 #!/bin/sh
 ROOT_DIR="fuzzer"
-export PATH="/root/.cargo/bin"
+
+LANG=$1
+TIME=$2
+
+shift 2
+
+export PATH="/root/.cargo/bin:$PATH"
 export CFLAGS="$(pkg-config --cflags --libs tree-sitter) -O0 -g -Wall"
 
 JQ_FILTER='.. | if .type? == "STRING" or (.type? == "ALIAS" and .named? == false) then .value else null end'
@@ -11,7 +17,7 @@ build_dict() {
 }
 
 build_fuzzer() {
-  cat <<END | clang -fsanitize=fuzzer,address $CFLAGS -lstdc++ -g -x c - $@ -o $ROOT_DIR/fuzzer
+  cat <<END | clang -fsanitize=fuzzer,address $CFLAGS -lstdc++ -g -x c - src/parser.c $@ -o $ROOT_DIR/fuzzer
 #include <stdio.h>
 #include <stdlib.h>
 #include <tree_sitter/api.h>
@@ -55,4 +61,4 @@ generate_fuzzer
 build_dict
 build_fuzzer $@
 cd "$ROOT_DIR"
-./fuzzer -help=1
+./fuzzer -dict=dict -max_total_time=$TIME out/

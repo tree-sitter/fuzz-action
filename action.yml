@@ -1,0 +1,18 @@
+name: "Tree-sitter fuzzing action"
+description: "Fuzzing of tree-sitter grammars using LibFuzzer"
+inputs:
+  language:
+    description: "Name of the language (in your grammar.js)"
+    required: true
+  external-scanner:
+    description: "Path to your external scanner"
+  time:
+    description: "Fuzzing time"
+    default: 120
+runs:
+  using: "docker"
+  image: "Dockerfile"
+  args:
+    - ${{ inputs.language }}
+    - ${{ inputs.time }}
+    - ${{ inputs.external-scanner }}
