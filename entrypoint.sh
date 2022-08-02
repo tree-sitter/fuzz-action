@@ -1,5 +1,6 @@
 #!/bin/sh
 ROOT_DIR="fuzzer"
+export PATH="/root/.cargo/bin"
 export CFLAGS="$(pkg-config --cflags --libs tree-sitter) -O0 -g -Wall"
 
 JQ_FILTER='.. | if .type? == "STRING" or (.type? == "ALIAS" and .named? == false) then .value else null end'
@@ -21,7 +22,7 @@ int LLVMFuzzerTestOneInput(const uint8_t * data, const size_t len) {
   // Create a parser.
   TSParser *parser = ts_parser_new();
 
-  // Set the parser's language (JSON in this case).
+  // Set the parser's language.
   ts_parser_set_language(parser, tree_sitter_$LANG());
 
   // Build a syntax tree based on source code stored in a string.
@@ -39,12 +40,19 @@ int LLVMFuzzerTestOneInput(const uint8_t * data, const size_t len) {
 END
 }
 
+generate_fuzzer() {
+  tree-sitter generate
+}
+
 makedirs() {
   mkdir -p "$ROOT_DIR"
   mkdir -p "$ROOT_DIR/out"
 }
 
 makedirs
+generate_fuzzer
 
 build_dict
 build_fuzzer $@
+cd "$ROOT_DIR"
+./fuzzer -help=1
