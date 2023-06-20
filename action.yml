@@ -6,6 +6,9 @@ inputs:
     required: true
   external-scanner:
     description: "Path to your external scanner"
+  timeout:
+    description: "Time to wait if the fuzzer hangs"
+    default: 10
   time:
     description: "Fuzzing time"
     default: 120
@@ -14,5 +17,6 @@ runs:
   image: "Dockerfile"
   args:
     - ${{ inputs.language }}
+    - ${{ inputs.timeout }}
     - ${{ inputs.time }}
     - ${{ inputs.external-scanner }}
