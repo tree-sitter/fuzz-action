@@ -1,10 +1,20 @@
-#!/bin/sh
+#!/usr/bin/env sh
+
+set -eu
+
 ROOT_DIR="fuzzer"
 
 LANG=$1
-TIME=$2
+TIMEOUT=$2
+MAX_TOTAL_TIME=$3
+SCANNER=$4
+if [ "$SCANNER" = "scanner.cc" ]; then
+	XFLAG="c++"
+else
+	XFLAG="c"
+fi
 
-shift 2
+shift 4
 
 export PATH="/root/.cargo/bin:$PATH"
 export CFLAGS="$(pkg-config --cflags --libs tree-sitter) -O0 -g -Wall"
@@ -12,18 +22,26 @@ export CFLAGS="$(pkg-config --cflags --libs tree-sitter) -O0 -g -Wall"
 JQ_FILTER='.. | if .type? == "STRING" or (.type? == "ALIAS" and .named? == false) then .value else null end'
 
 build_dict() {
-  cat src/grammar.json | jq "$JQ_FILTER" |\
-    grep -v "\\\\" | grep -v null > $ROOT_DIR/dict
+	jq "$JQ_FILTER" <src/grammar.json |
+		grep -v "\\\\" | grep -v null |
+		iconv -c -f UTF-8 -t ASCII//TRANSLIT |
+		awk '!/^""$/' >"$ROOT_DIR/dict"
 }
 
 build_fuzzer() {
-  cat <<END | clang -fsanitize=fuzzer,address $CFLAGS -lstdc++ -g -x c - src/parser.c $@ -o $ROOT_DIR/fuzzer
+	cat <<END | clang -fsanitize=fuzzer,address,undefined $CFLAGS -lstdc++ -g -x $XFLAG - src/$SCANNER src/parser.c $@ -o $ROOT_DIR/fuzzer
 #include <stdio.h>
 #include <stdlib.h>
 #include <tree_sitter/api.h>
 
+#ifdef __cplusplus
+extern "C"
+#endif
 TSLanguage *tree_sitter_$LANG();
 
+#ifdef __cplusplus
+extern "C"
+#endif
 int LLVMFuzzerTestOneInput(const uint8_t * data, const size_t len) {
   // Create a parser.
   TSParser *parser = ts_parser_new();
@@ -47,12 +65,12 @@ END
 }
 
 generate_fuzzer() {
-  tree-sitter generate
+	tree-sitter generate
 }
 
 makedirs() {
-  mkdir -p "$ROOT_DIR"
-  mkdir -p "$ROOT_DIR/out"
+	mkdir -p "$ROOT_DIR"
+	mkdir -p "$ROOT_DIR/out"
 }
 
 makedirs
@@ -61,4 +79,4 @@ generate_fuzzer
 build_dict
 build_fuzzer $@
 cd "$ROOT_DIR"
-./fuzzer -dict=dict -max_total_time=$TIME out/
+./fuzzer -dict=dict -timeout=$TIMEOUT -max_total_time=$MAX_TOTAL_TIME out/

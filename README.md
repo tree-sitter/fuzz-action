@@ -1,18 +1,23 @@
 # Tree-sitter fuzzing action
 
 Options:
+
 ```yaml
 language:
   description: "Name of the language (in your grammar.js)"
   required: true
 external-scanner:
   description: "Path to your external scanner"
+timeout:
+  description: "Time to wait if the fuzzer hangs"
+  default: 10
 time:
   description: "Fuzzing time"
   default: 120
 ```
 
 Example configuration (for the `vim` parser):
+
 ```yaml
 name: Fuzz parser
 
@@ -36,4 +41,5 @@ jobs:
           language: vim
           external-scanner: src/scanner.c
           time: 60
+          timeout: 5
 ```
