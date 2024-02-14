@@ -5,7 +5,6 @@
 ```yaml
 directory:
   description: The directory of the grammar
-  default: .
 timeout:
   description: The time to wait if the fuzzer hangs
   default: '10'
