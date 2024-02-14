@@ -1,29 +1,33 @@
-# Tree-sitter fuzzing action
+# Tree-sitter scanner fuzzing
 
-Options:
+## Options
 
 ```yaml
-language:
-  description: "Name of the language (in your grammar.js)"
-  required: true
-external-scanner:
-  description: "Path to your external scanner"
+directory:
+  description: The directory of the grammar
+  default: .
 timeout:
-  description: "Time to wait if the fuzzer hangs"
-  default: 10
-time:
-  description: "Fuzzing time"
-  default: 120
+  description: The time to wait if the fuzzer hangs
+  default: '10'
+max-time:
+  description: The maximum total fuzzing time
+  default: '60'
+max-length:
+  description: The maximum fuzz input length
+  default: '4096'
+tree-sitter-ref:
+  description: The tree-sitter ref to install
+  default: master
 ```
 
-Example configuration (for the `vim` parser):
+## Example configuration
 
 ```yaml
 name: Fuzz parser
 
-# Run this workflow on changes to the external scanner
 on:
   push:
+    branches: [master]
     paths:
       - src/scanner.c
   pull_request:
@@ -35,11 +39,10 @@ jobs:
     name: Parser fuzzing
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
-      - uses: vigoux/tree-sitter-fuzz-action@v1
-        with:
-          language: vim
-          external-scanner: src/scanner.c
-          time: 60
-          timeout: 5
+      - uses: actions/checkout@v4
+      - uses: tree-sitter-grammars/tree-sitter-fuzz-action@v2
 ```
+
+## Credits
+
+Based on [vigoux/tree-sitter-fuzz-action](https://github.com/vigoux/tree-sitter-fuzz-action)

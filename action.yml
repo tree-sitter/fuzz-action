@@ -1,22 +1,51 @@
-name: "Tree-sitter fuzzing action"
-description: "Fuzzing of tree-sitter grammars using LibFuzzer"
+name: Tree-sitter scanner fuzzing
+description: Fuzzing of tree-sitter grammars using libFuzzer
+branding:
+  color: green
+  icon: shuffle
 inputs:
-  language:
-    description: "Name of the language (in your grammar.js)"
-    required: true
-  external-scanner:
-    description: "Path to your external scanner"
+  directory:
+    description: The directory of the grammar
+    default: .
   timeout:
-    description: "Time to wait if the fuzzer hangs"
-    default: 10
-  time:
-    description: "Fuzzing time"
-    default: 120
+    description: The time to wait if the fuzzer hangs
+    default: '10'
+  max-time:
+    description: The maximum total fuzzing time
+    default: '60'
+  max-length:
+    description: The maximum fuzz input length
+    default: '4096'
+  tree-sitter-ref:
+    description: The tree-sitter ref to install
+    default: master
 runs:
-  using: "docker"
-  image: "Dockerfile"
-  args:
-    - ${{ inputs.language }}
-    - ${{ inputs.timeout }}
-    - ${{ inputs.time }}
-    - ${{ inputs.external-scanner }}
+  using: composite
+  steps:
+    - name: Checkout tree-sitter
+      uses: actions/checkout@v4
+      with:
+        path: tree-sitter
+        repository: tree-sitter/tree-sitter
+        ref: ${{inputs.tree-sitter-ref}}
+    - name: Install tree-sitter
+      working-directory: ${{github.workspace}}/tree-sitter
+      shell: sh
+      run: make && make PREFIX=/usr install
+    - name: Run the fuzzer
+      working-directory: ${{github.action_path}}
+      shell: sh
+      run: make LANG_NAME=$(jq -r .name $LANG_DIR/src/grammar.json)
+      env:
+        LANG_DIR: ${{inputs.directory}}
+        TIMEOUT: ${{inputs.timeout}}
+        MAX_TIME: ${{inputs.max-time}}
+        MAX_LEN: ${{inputs.max-length}}
+    - name: Upload fuzzer artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        path: artifacts
+        name: fuzzer-artifacts
+        if-no-files-found: ignore
+        retention-days: 7
+        overwrite: true

@@ -1,0 +1,5 @@
+tree-sitter/
+artifacts/
+out/
+fuzzer
+dict
