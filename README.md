@@ -39,7 +39,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: tree-sitter-grammars/tree-sitter-fuzz-action@v2
+      - uses: tree-sitter-grammars/tree-sitter-fuzz-action@v3
 ```
 
 ## Credits

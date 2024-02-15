@@ -5,8 +5,6 @@ MAX_TIME ?= 60
 MAX_LEN ?= 4096
 FUZZER_DIR ?= .
 
-SCANNER = $(wildcard $(LANG_DIR)/src/scanner.c $(LANG_DIR)/src/scanner.cc)
-
 JQ_FILTER := .. | select((.type? == "STRING" or (.type? == "ALIAS" and .named? == false)) and .value? != "") | .value
 
 fuzz: $(FUZZER_DIR)/fuzzer $(FUZZER_DIR)/dict
@@ -20,10 +18,9 @@ $(FUZZER_DIR)/dict: $(LANG_DIR)/src/grammar.json
 
 $(FUZZER_DIR)/fuzzer: $(if $(LANG_NAME),,$(error LANG_NAME must be set))
 $(FUZZER_DIR)/fuzzer: $(if $(LANG_DIR),,$(error LANG_DIR must be set))
-$(FUZZER_DIR)/fuzzer: fuzzer.c $(LANG_DIR)/src/parser.c $(SCANNER)
-	$(eval XFLAG = $(if $(filter-out $(SCANNER),$(LANG_DIR)/src/scanner.cc),-xc,-xc++))
+$(FUZZER_DIR)/fuzzer: fuzzer.c $(LANG_DIR)/src/parser.c $(wildcard $(LANG_DIR)/src/scanner.c)
 	clang -fsanitize=fuzzer,address,undefined -fsanitize-ignorelist=ignorelist.ini \
-		-Wall -Wno-unused-but-set-variable -O0 -g -I$(LANG_DIR)/src $(XFLAG) \
+		-Wall -Wno-unused-but-set-variable -O0 -g -I$(LANG_DIR)/src \
 		-Dlanguage=tree_sitter_$(LANG_NAME) $$(pkg-config --cflags --libs tree-sitter) $^ -o $@
 
 .PHONY:

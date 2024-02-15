@@ -4,14 +4,8 @@
 #error "language must be defined"
 #endif
 
-#ifdef __cplusplus
-extern "C"
-#endif
-TSLanguage *language();
+extern TSLanguage *language();
 
-#ifdef __cplusplus
-extern "C"
-#endif
 int LLVMFuzzerTestOneInput(const uint8_t * data, const size_t len) {
     // Create a parser.
     TSParser *parser = ts_parser_new();
