@@ -30,11 +30,17 @@ runs:
     - name: Install tree-sitter
       working-directory: ${{github.workspace}}/tree-sitter
       shell: sh
-      run: make && sudo make PREFIX=/usr install
+      run: |-
+        printf '::group::Installing tree-sitter\n'
+        make && sudo make PREFIX=/usr install
+        printf '::endgroup::\n'
     - name: Run the fuzzer
       working-directory: ${{github.action_path}}
       shell: sh
-      run: make LANG_NAME=$(jq -r .name $LANG_DIR/src/grammar.json)
+      run: |-
+        printf '::group::Running the fuzzer\n'
+        make LANG_NAME=$(jq -r .name $LANG_DIR/src/grammar.json)
+        printf '::endgroup::\n'
       env:
         TIMEOUT: ${{inputs.timeout}}
         MAX_TIME: ${{inputs.max-time}}
