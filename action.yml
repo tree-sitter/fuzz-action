@@ -1,38 +1,50 @@
 name: Tree-sitter scanner fuzzing
 description: Fuzzing of tree-sitter grammars using libFuzzer
+
 branding:
   color: green
   icon: shuffle
+
 inputs:
   directory:
     description: The directory of the grammar
   timeout:
     description: The time to wait if the fuzzer hangs
-    default: '10'
+    default: "10"
   max-time:
     description: The maximum total fuzzing time
-    default: '60'
+    default: "60"
   max-length:
     description: The maximum fuzz input length
-    default: '4096'
-  tree-sitter-ref:
-    description: The tree-sitter ref to install
-    default: master
+    default: "4096"
+  tree-sitter-version:
+    description: The tree-sitter version to install
+    default: "v0.21.0"
+
 runs:
   using: composite
   steps:
+    - name: Cache tree-sitter
+      uses: actions/cache@v4
+      id: cache
+      if: inputs.tree-sitter-version != 'master'
+      with:
+        path: ${{runner.tool_cache}}/tree-sitter
+        key: tree-sitter-${{inputs.tree-sitter-version}}
     - name: Checkout tree-sitter
+      if: steps.cache.outputs.cache-hit != 'true'
       uses: actions/checkout@v4
       with:
         path: tree-sitter
         repository: tree-sitter/tree-sitter
-        ref: ${{inputs.tree-sitter-ref}}
+        ref: ${{inputs.tree-sitter-version}}
     - name: Install tree-sitter
+      if: steps.cache.outputs.cache-hit != 'true'
       working-directory: ${{github.workspace}}/tree-sitter
       shell: sh
       run: |-
         printf '::group::Installing tree-sitter\n'
-        make && sudo make PREFIX=/usr install
+        make && make PREFIX='${{runner.tool_cache}}/tree-sitter' install
         printf '::endgroup::\n'
     - name: Run the fuzzer
       working-directory: ${{github.action_path}}
@@ -46,11 +58,13 @@ runs:
         MAX_TIME: ${{inputs.max-time}}
         MAX_LEN: ${{inputs.max-length}}
         LANG_DIR: ${{github.workspace}}/${{inputs.directory}}
+        LD_LIBRARY_PATH: '${{runner.tool_cache}}/tree-sitter/lib'
+        PKG_CONFIG_PATH: '${{runner.tool_cache}}/tree-sitter/lib/pkgconfig'
     - name: Upload fuzzer artifacts
       uses: actions/upload-artifact@v4
       with:
         path: artifacts
-        name: fuzzer-artifacts
+        name: fuzzer-artifacts-${{inputs.directory}}
         if-no-files-found: ignore
         retention-days: 7
         overwrite: true
