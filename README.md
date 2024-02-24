@@ -1,4 +1,4 @@
-# Tree-sitter scanner fuzzing
+# Tree-sitter parser fuzzing
 
 ## Options
 
@@ -7,16 +7,16 @@ directory:
   description: The directory of the grammar
 timeout:
   description: The time to wait if the fuzzer hangs
-  default: "10"
+  default: 10
 max-time:
   description: The maximum total fuzzing time
-  default: "60"
+  default: 60
 max-length:
   description: The maximum fuzz input length
-  default: "4096"
+  default: 4096
 tree-sitter-version:
   description: The tree-sitter version to install
-  default: "v0.21.0"
+  default: v0.21.0
 ```
 
 ## Example configuration
@@ -39,7 +39,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: tree-sitter-grammars/tree-sitter-fuzz-action@v3
+      - uses: tree-sitter/fuzz-action@v4
 ```
 
 ## Credits

@@ -1,5 +1,5 @@
-name: Tree-sitter scanner fuzzing
-description: Fuzzing of tree-sitter grammars using libFuzzer
+name: Tree-sitter parser fuzzing
+description: Fuzzing of tree-sitter parsers using libFuzzer
 
 branding:
   color: green
@@ -19,7 +19,7 @@ inputs:
     default: "4096"
   tree-sitter-version:
     description: The tree-sitter version to install
-    default: "v0.21.0"
+    default: v0.21.0
 
 runs:
   using: composite
@@ -31,35 +31,36 @@ runs:
       with:
         path: ${{runner.tool_cache}}/tree-sitter
         key: tree-sitter-${{inputs.tree-sitter-version}}
-    - name: Checkout tree-sitter
-      if: steps.cache.outputs.cache-hit != 'true'
-      uses: actions/checkout@v4
-      with:
-        path: tree-sitter
-        repository: tree-sitter/tree-sitter
-        ref: ${{inputs.tree-sitter-version}}
     - name: Install tree-sitter
       if: steps.cache.outputs.cache-hit != 'true'
-      working-directory: ${{github.workspace}}/tree-sitter
+      working-directory: ${{runner.temp}}
       shell: sh
       run: |-
-        printf '::group::Installing tree-sitter\n'
-        make && make PREFIX='${{runner.tool_cache}}/tree-sitter' install
+        printf '::group::Cloning tree-sitter repo\n'
+        git clone https://github.com/tree-sitter/tree-sitter --filter=blob:none
+        cd tree-sitter && git checkout '${{inputs.tree-sitter-version}}'
         printf '::endgroup::\n'
+
+        printf '::group::Installing tree-sitter lib\n'
+        make && make PREFIX="$RUNNER_TOOL_CACHE/tree-sitter" install
+        printf '::endgroup::\n'
+
+        printf '%s\n' >> "$GITHUB_ENV" \
+          "LD_LIBRARY_PATH=$RUNNER_TOOL_CACHE/tree-sitter/lib" \
+          "PKG_CONFIG_PATH=$RUNNER_TOOL_CACHE/tree-sitter/lib/pkgconfig"
     - name: Run the fuzzer
       working-directory: ${{github.action_path}}
       shell: sh
       run: |-
         printf '::group::Running the fuzzer\n'
+        export LANG_DIR="$GITHUB_WORKSPACE${LANG_DIR+/}$LANG_DIR"
         make LANG_NAME=$(jq -r .name $LANG_DIR/src/grammar.json)
         printf '::endgroup::\n'
       env:
         TIMEOUT: ${{inputs.timeout}}
         MAX_TIME: ${{inputs.max-time}}
         MAX_LEN: ${{inputs.max-length}}
-        LANG_DIR: ${{github.workspace}}/${{inputs.directory}}
-        LD_LIBRARY_PATH: '${{runner.tool_cache}}/tree-sitter/lib'
-        PKG_CONFIG_PATH: '${{runner.tool_cache}}/tree-sitter/lib/pkgconfig'
+        LANG_DIR: ${{inputs.directory}}
     - name: Upload fuzzer artifacts
       uses: actions/upload-artifact@v4
       with:
