@@ -44,7 +44,9 @@ runs:
         printf '::group::Installing tree-sitter lib\n'
         make && make PREFIX="$RUNNER_TOOL_CACHE/tree-sitter" install
         printf '::endgroup::\n'
-
+    - name: Set up tree-sitter paths
+      shell: sh
+      run: |-
         printf '%s\n' >> "$GITHUB_ENV" \
           "LD_LIBRARY_PATH=$RUNNER_TOOL_CACHE/tree-sitter/lib" \
           "PKG_CONFIG_PATH=$RUNNER_TOOL_CACHE/tree-sitter/lib/pkgconfig"
