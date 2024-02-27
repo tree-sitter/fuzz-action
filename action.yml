@@ -24,32 +24,10 @@ inputs:
 runs:
   using: composite
   steps:
-    - name: Cache tree-sitter
-      uses: actions/cache@v4
-      id: cache
-      if: inputs.tree-sitter-version != 'master'
-      with:
-        path: ${{runner.tool_cache}}/tree-sitter
-        key: tree-sitter-${{inputs.tree-sitter-version}}
     - name: Install tree-sitter
-      if: steps.cache.outputs.cache-hit != 'true'
-      working-directory: ${{runner.temp}}
-      shell: sh
-      run: |-
-        printf '::group::Cloning tree-sitter repo\n'
-        git clone https://github.com/tree-sitter/tree-sitter --filter=blob:none
-        cd tree-sitter && git checkout '${{inputs.tree-sitter-version}}'
-        printf '::endgroup::\n'
-
-        printf '::group::Installing tree-sitter lib\n'
-        make && make PREFIX="$RUNNER_TOOL_CACHE/tree-sitter" install
-        printf '::endgroup::\n'
-    - name: Set up tree-sitter paths
-      shell: sh
-      run: |-
-        printf '%s\n' >> "$GITHUB_ENV" \
-          "LD_LIBRARY_PATH=$RUNNER_TOOL_CACHE/tree-sitter/lib" \
-          "PKG_CONFIG_PATH=$RUNNER_TOOL_CACHE/tree-sitter/lib/pkgconfig"
+      uses: tree-sitter/setup-action/lib@v1
+      with:
+        tree-sitter-ref: ${{inputs.tree-sitter-version}}
     - name: Run the fuzzer
       working-directory: ${{github.action_path}}
       shell: sh
