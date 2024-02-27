@@ -4,7 +4,7 @@
 #error "language must be defined"
 #endif
 
-extern TSLanguage *language();
+const TSLanguage *language(void);
 
 int LLVMFuzzerTestOneInput(const uint8_t * data, const size_t len) {
     // Create a parser.

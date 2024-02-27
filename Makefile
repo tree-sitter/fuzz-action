@@ -18,7 +18,7 @@ $(FUZZER_DIR)/dict: $(LANG_DIR)/src/grammar.json
 $(FUZZER_DIR)/fuzzer: fuzzer.c $(LANG_DIR)/src/parser.c $(wildcard $(LANG_DIR)/src/scanner.c)
 	$(eval LANGUAGE = $(if $(LANG_NAME),tree_sitter_$(LANG_NAME),$(error LANG_NAME must be set)))
 	clang -fsanitize=fuzzer,address,undefined -fsanitize-ignorelist=ignorelist.ini \
-		-Wall -Wno-unused-but-set-variable -O0 -g -I$(LANG_DIR)/src \
+		-Wall -Wno-unused-but-set-variable -std=c11 -O0 -g -I$(LANG_DIR)/src \
 		-Dlanguage=$(LANGUAGE) $$(pkg-config --cflags --libs tree-sitter) $^ -o $@
 
 .PHONY:

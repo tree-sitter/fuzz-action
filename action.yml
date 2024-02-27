@@ -29,11 +29,12 @@ runs:
       with:
         tree-sitter-ref: ${{inputs.tree-sitter-version}}
     - name: Run the fuzzer
+      id: fuzz
       working-directory: ${{github.action_path}}
       shell: sh
       run: |-
         printf '::group::Running the fuzzer\n'
-        export LANG_DIR="$GITHUB_WORKSPACE${LANG_DIR+/}$LANG_DIR"
+        export LANG_DIR="$GITHUB_WORKSPACE${LANG_DIR:+/}$LANG_DIR"
         make LANG_NAME=$(jq -r .name $LANG_DIR/src/grammar.json)
         printf '::endgroup::\n'
       env:
@@ -43,9 +44,9 @@ runs:
         LANG_DIR: ${{inputs.directory}}
     - name: Upload fuzzer artifacts
       uses: actions/upload-artifact@v4
+      if: failure() && steps.fuzz.outcome == 'failure'
       with:
-        path: artifacts
+        path: ${{github.action_path}}/artifacts/*
         name: fuzzer-artifacts-${{inputs.directory}}
-        if-no-files-found: ignore
         retention-days: 7
         overwrite: true
