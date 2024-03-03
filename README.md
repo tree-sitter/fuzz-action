@@ -5,6 +5,8 @@
 ```yaml
 directory:
   description: The directory of the grammar
+corpus:
+  description: The directory of the seed corpus
 timeout:
   description: The time to wait if the fuzzer hangs
   default: 10

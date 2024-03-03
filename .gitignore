@@ -1,5 +1,6 @@
 tree-sitter/
 artifacts/
+corpus/
 out/
 fuzzer
 dict
