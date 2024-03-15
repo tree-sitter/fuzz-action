@@ -38,9 +38,8 @@ runs:
         export LANG_DIR="$GITHUB_WORKSPACE${LANG_DIR:+/}$LANG_DIR"
         [[ -z $CORPUS_DIR ]] || export CORPUS_DIR="$GITHUB_WORKSPACE/$CORPUS_DIR"
         printf '::group::Running the fuzzer\n'
-        make LANG_NAME=$(jq -r .name $LANG_DIR/src/grammar.json) |& tee "$RUNNER_TEMP/fuzzout"
+        make LANG_NAME=$(jq -r .name $LANG_DIR/src/grammar.json) |& tee >(perl annotate.pl)
         printf '::endgroup::\n'
-        awk -f annotate.awk -vprefix="($GITHUB_WORKSPACE/)?" "$RUNNER_TEMP/fuzzout"
       env:
         TIMEOUT: ${{inputs.timeout}}
         MAX_TIME: ${{inputs.max-time}}
