@@ -18,7 +18,7 @@ max-length:
   default: 4096
 tree-sitter-version:
   description: The tree-sitter version to install
-  default: v0.21.0
+  default: latest
 ```
 
 ## Example configuration
