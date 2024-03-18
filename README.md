@@ -1,5 +1,8 @@
 # Tree-sitter parser fuzzing
 
+> [!IMPORTANT]
+> This only works on Linux.
+
 ## Options
 
 ```yaml
@@ -43,6 +46,25 @@ jobs:
       - uses: actions/checkout@v4
       - uses: tree-sitter/fuzz-action@v4
 ```
+
+## Using locally
+
+### Requirements
+
+- `pkg-config`
+- `make`
+- `jq`
+- `llvm`
+- `tree-sitter` library
+
+### Usage
+
+```bash
+make LANG_NAME=parser LANG_DIR=/path/to/tree-sitter-parser
+```
+
+> [!TIP]
+> Check the [Makefile](./Makefile) for more options.
 
 ## Credits
 
