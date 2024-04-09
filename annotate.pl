@@ -10,8 +10,9 @@ while (my $line = <>) {
     print "::notice file=$file,line=$+{line},col=$+{col},title=Sanitizer::$+{msg}";
   } elsif ($line =~ /SUMMARY: AddressSanitizer: [^0-9]/) {
     $line =~ /AddressSanitizer: (?<id>[A-Za-z-]+) (?<file>[^:]+):(?<line>[0-9]+):(?<col>[0-9]+) (?<msg>.+)/;
+    my $msg = join(' ', split('-', $+{id}), $+{msg});
     my $file = abs2rel(abs_path($+{file}), $ENV{GITHUB_WORKSPACE});
-    print "::error file=$file,line=$+{line},col=$+{col},title=Sanitizer::$+{id} $+{msg}";
+    print "::error file=$file,line=$+{line},col=$+{col},title=Sanitizer::$msg";
   } elsif ($line =~ /ERROR: LeakSanitizer:/) {
     readline STDIN; readline STDIN;
     my $line = readline STDIN;
