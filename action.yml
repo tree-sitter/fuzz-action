@@ -27,7 +27,7 @@ runs:
   using: composite
   steps:
     - name: Install tree-sitter
-      uses: tree-sitter/setup-action/lib@v1
+      uses: tree-sitter/setup-action/lib@v2
       with:
         tree-sitter-ref: ${{inputs.tree-sitter-version}}
     - name: Run the fuzzer
